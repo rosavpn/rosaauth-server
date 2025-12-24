@@ -1,11 +1,5 @@
 # RosaAuth Server
 
-[![Go Report Card](https://goreportcard.com/badge/github.com/brsyuksel/rosaauth-server)](https://goreportcard.com/report/github.com/brsyuksel/rosaauth-server)
-[![Go Reference](https://pkg.go.dev/badge/github.com/brsyuksel/rosaauth-server.svg)](https://pkg.go.dev/github.com/brsyuksel/rosaauth-server)
-[![Release](https://github.com/brsyuksel/rosaauth-server/actions/workflows/release.yml/badge.svg)](https://github.com/brsyuksel/rosaauth-server/actions/workflows/release.yml)
-[![Security](https://github.com/brsyuksel/rosaauth-server/actions/workflows/security.yml/badge.svg)](https://github.com/brsyuksel/rosaauth-server/actions/workflows/security.yml)
-[![License](https://img.shields.io/github/license/brsyuksel/rosaauth-server)](https://github.com/brsyuksel/rosaauth-server/blob/main/LICENSE)
-
 RosaAuth Server is a production-ready Go Fiber web server designed for End-to-End Encrypted (E2EE) 2FA synchronization. It serves as a secure backend for mobile clients to sync encrypted 2FA records and provides an administration interface for user management.
 
 ## Features
