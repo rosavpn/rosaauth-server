@@ -4,8 +4,8 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"io/fs"
 	"os"
-	"path/filepath"
 	"time"
 
 	"rosaauth-server/internal/config"
@@ -36,15 +36,22 @@ func Connect(cfg *config.Config) (*DB, error) {
 }
 
 func (db *DB) Migrate(migrationPath string) error {
-	files, err := filepath.Glob(filepath.Join(migrationPath, "*.sql"))
+	root, err := os.OpenRoot(migrationPath)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to open migration directory: %w", err)
+	}
+	defer root.Close()
+
+	fsys := root.FS()
+	files, err := fs.Glob(fsys, "*.sql")
+	if err != nil {
+		return fmt.Errorf("failed to list migration files: %w", err)
 	}
 
 	for _, file := range files {
-		content, err := os.ReadFile(file)
+		content, err := fs.ReadFile(fsys, file)
 		if err != nil {
-			return err
+			return fmt.Errorf("failed to read migration file %s: %w", file, err)
 		}
 
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -53,7 +60,6 @@ func (db *DB) Migrate(migrationPath string) error {
 		if _, err := db.Conn.ExecContext(ctx, string(content)); err != nil {
 			return fmt.Errorf("failed to execute migration %s: %w", file, err)
 		}
-		log.Info().Str("file", file).Msg("Migration executed")
 	}
 	return nil
 }
