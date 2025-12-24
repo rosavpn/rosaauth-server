@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RosaAuth Admin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        [x-cloak] {
+            display: none !important;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50 text-gray-900 antialiased" x-data="app">
+
+    <!-- Toast Notification -->
+    <div x-show="toast.visible" x-transition class="fixed top-5 right-5 z-50 px-4 py-2 rounded shadow-lg text-white"
+        :class="toast.type === 'error' ? 'bg-red-500' : 'bg-green-500'" x-cloak>
+        <span x-text="toast.message"></span>
+    </div>
+
+    <!-- Login Screen -->
+    <div x-show="!token" class="min-h-screen flex items-center justify-center p-4">
+        <div class="bg-white p-8 rounded-xl shadow-xl w-full max-w-md border border-gray-100">
+            <h1 class="text-2xl font-bold mb-6 text-center text-indigo-600">RosaAuth Admin</h1>
+            <form @submit.prevent="login">
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                    <input type="email" x-model="loginForm.email"
+                        class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                        required>
+                </div>
+                <div class="mb-6">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                    <input type="password" x-model="loginForm.password"
+                        class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                        required>
+                </div>
+                <button type="submit"
+                    class="w-full bg-indigo-600 text-white py-2 rounded-lg hover:bg-indigo-700 font-semibold transition">Sign
+                    In</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Dashboard -->
+    <div x-show="token" class="min-h-screen flex flex-col" x-cloak>
+        <!-- Navbar -->
+        <nav class="bg-white shadow-sm border-b border-gray-200">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between h-16">
+                    <div class="flex items-center">
+                        <span class="text-xl font-bold text-indigo-600">RosaAuth</span>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <span class="text-sm text-gray-500" x-text="userEmail"></span>
+                        <button @click="logout"
+                            class="text-sm text-gray-600 hover:text-red-600 transition">Logout</button>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Content -->
+        <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold">Users</h2>
+                <button @click="showAddModal = true"
+                    class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 font-medium transition flex items-center">
+                    <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                    </svg>
+                    Add User
+                </button>
+            </div>
+
+            <div class="bg-white rounded-lg shadow overflow-hidden border border-gray-200">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Email</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Role</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Created At</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Records</th>
+                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        <template x-for="u in users" :key="u.id">
+                            <tr>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900"
+                                    x-text="u.email"></td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full"
+                                        :class="u.is_admin ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'"
+                                        x-text="u.is_admin ? 'Admin' : 'User'"></span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"
+                                    x-text="new Date(u.created_at).toLocaleDateString()"></td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"
+                                    x-text="u.record_count || 0"></td>
+                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                    <button @click="confirmDelete(u)"
+                                        class="text-red-600 hover:text-red-900 transition">Delete</button>
+                                </td>
+                            </tr>
+                        </template>
+                        <tr x-show="users.length === 0">
+                            <td colspan="5" class="px-6 py-4 text-center text-sm text-gray-500">No users found.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+
+    <!-- Add User Modal -->
+    <div x-show="showAddModal" class="fixed inset-0 z-10 overflow-y-auto" x-cloak>
+        <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+            <div class="fixed inset-0 transition-opacity" aria-hidden="true" @click="showAddModal = false">
+                <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
+            </div>
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+            <div
+                class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                    <h3 class="text-lg leading-6 font-medium text-gray-900">Add New User</h3>
+                    <div class="mt-4 space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Email</label>
+                            <input type="email" x-model="addUserForm.email"
+                                class="mt-1 w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Password</label>
+                            <input type="password" x-model="addUserForm.password"
+                                class="mt-1 w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                        </div>
+                        <div class="flex items-center">
+                            <input type="checkbox" x-model="addUserForm.is_admin"
+                                class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
+                            <label class="ml-2 block text-sm text-gray-900">Is Admin</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                    <button type="button" @click="addUser"
+                        class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:ml-3 sm:w-auto sm:text-sm">
+                        Create
+                    </button>
+                    <button type="button" @click="showAddModal = false"
+                        class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div x-show="showDeleteModal" class="fixed inset-0 z-10 overflow-y-auto" x-cloak>
+        <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+            <div class="fixed inset-0 transition-opacity" aria-hidden="true" @click="showDeleteModal = false">
+                <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
+            </div>
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+            <div
+                class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                    <h3 class="text-lg leading-6 font-medium text-red-600">Delete User</h3>
+                    <p class="text-sm text-gray-500 mt-2">
+                        Are you sure you want to delete <strong x-text="userToDelete?.email"></strong>? This action
+                        cannot be undone. All their data will be lost.
+                    </p>
+                    <div class="mt-4">
+                        <label class="block text-sm font-medium text-gray-700">Type their email to confirm</label>
+                        <input type="text" x-model="deleteConfirmationEmail" placeholder="user@example.com"
+                            class="mt-1 w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-red-500 focus:border-red-500 sm:text-sm">
+                    </div>
+                </div>
+                <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                    <button type="button" @click="deleteUser"
+                        :disabled="deleteConfirmationEmail !== userToDelete?.email"
+                        class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed">
+                        Delete
+                    </button>
+                    <button type="button" @click="showDeleteModal = false"
+                        class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('alpine:init', () => {
+            Alpine.data('app', () => ({
+                token: localStorage.getItem('token'),
+                userEmail: localStorage.getItem('email'),
+                users: [],
+                loginForm: { email: '', password: '' },
+                addUserForm: { email: '', password: '', is_admin: false },
+                showAddModal: false,
+                showDeleteModal: false,
+                userToDelete: null,
+                deleteConfirmationEmail: '',
+                toast: { visible: false, message: '', type: 'success' },
+
+                init() {
+                    if (this.token) {
+                        this.fetchUsers();
+                    }
+                },
+
+                showToast(msg, type = 'success') {
+                    this.toast.message = msg;
+                    this.toast.type = type;
+                    this.toast.visible = true;
+                    setTimeout(() => this.toast.visible = false, 3000);
+                },
+
+                async login() {
+                    try {
+                        const res = await fetch('/api/v1/login', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(this.loginForm)
+                        });
+                        if (!res.ok) throw new Error('Login failed');
+                        const data = await res.json();
+                        this.token = data.token;
+                        localStorage.setItem('token', data.token);
+
+                        this.userEmail = this.loginForm.email;
+                        localStorage.setItem('email', this.userEmail);
+
+                        // Clear sensitive form data
+                        this.loginForm = { email: '', password: '' };
+
+                        // Fetch users immediately
+                        await this.fetchUsers();
+                    } catch (e) {
+                        this.showToast(e.message, 'error');
+                    }
+                },
+
+                logout() {
+                    this.token = null;
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('email');
+                    this.users = [];
+                },
+
+                async fetchUsers() {
+                    if (!this.token) return;
+                    try {
+                        const res = await fetch('/admin/users', {
+                            headers: { 'Authorization': 'Bearer ' + this.token }
+                        });
+                        if (res.status === 401) { this.logout(); return; }
+                        if (!res.ok) throw new Error('Failed to fetch users');
+                        this.users = await res.json();
+                    } catch (e) {
+                        this.showToast(e.message, 'error');
+                    }
+                },
+
+                async addUser() {
+                    try {
+                        const res = await fetch('/admin/users', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': 'Bearer ' + this.token
+                            },
+                            body: JSON.stringify(this.addUserForm)
+                        });
+                        if (!res.ok) throw new Error('Failed to create user');
+                        this.showAddModal = false;
+                        this.addUserForm = { email: '', password: '', is_admin: false };
+                        this.showToast('User created successfully');
+                        this.fetchUsers();
+                    } catch (e) {
+                        this.showToast(e.message, 'error');
+                    }
+                },
+
+                confirmDelete(user) {
+                    this.userToDelete = user;
+                    this.deleteConfirmationEmail = '';
+                    this.showDeleteModal = true;
+                },
+
+                async deleteUser() {
+                    try {
+                        const res = await fetch('/admin/users/' + this.userToDelete.id, {
+                            method: 'DELETE',
+                            headers: {
+                                'Authorization': 'Bearer ' + this.token
+                            }
+                        });
+                        if (!res.ok) throw new Error('Failed to delete user');
+                        this.showDeleteModal = false;
+                        this.showToast('User deleted successfully');
+                        this.fetchUsers();
+                    } catch (e) {
+                        this.showToast(e.message, 'error');
+                    }
+                }
+            }));
+        });
+    </script>
+</body>
+
+</html>
