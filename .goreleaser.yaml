@@ -45,5 +45,5 @@ dockers:
       - "--label=org.opencontainers.image.name={{.ProjectName}}"
       - "--label=org.opencontainers.image.revision={{.FullCommit}}"
       - "--label=org.opencontainers.image.version={{.Version}}"
-    dockerfile: Dockerfile
+    dockerfile: Dockerfile.goreleaser
 
