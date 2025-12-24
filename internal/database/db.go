@@ -40,7 +40,7 @@ func (db *DB) Migrate(migrationPath string) error {
 	if err != nil {
 		return fmt.Errorf("failed to open migration directory: %w", err)
 	}
-	defer root.Close()
+	defer root.Close() //nolint:errcheck
 
 	fsys := root.FS()
 	files, err := fs.Glob(fsys, "*.sql")

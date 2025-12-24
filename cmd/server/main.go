@@ -40,7 +40,7 @@ func main() {
 	if err != nil {
 		log.Fatal().Err(err).Msg("Could not connect to database")
 	}
-	defer db.Close()
+	defer db.Close() //nolint:errcheck
 
 	if err := db.Migrate("internal/database/migrations"); err != nil {
 		log.Fatal().Err(err).Msg("Migration failed")

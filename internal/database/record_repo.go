@@ -25,7 +25,7 @@ func (r *RecordRepo) GetRecords(ctx context.Context, userID uuid.UUID) ([]models
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	defer rows.Close() //nolint:errcheck
 
 	var records []models.TwoFARecordPayload
 	for rows.Next() {
@@ -45,7 +45,7 @@ func (r *RecordRepo) ApplySyncOps(ctx context.Context, userID uuid.UUID, ops []m
 	if err != nil {
 		return nil, err
 	}
-	defer tx.Rollback()
+	defer tx.Rollback() //nolint:errcheck
 
 	stmtUpsert := `
 		INSERT INTO twofa_records (id, user_id, encrypted_data)
