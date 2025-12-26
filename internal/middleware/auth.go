@@ -1,6 +1,9 @@
 package middleware
 
 import (
+	"crypto/hmac"
+	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
 	"strings"
 	"time"
@@ -21,10 +24,16 @@ func NewAuthMiddleware(cfg *config.Config) *AuthMiddleware {
 }
 
 func (m *AuthMiddleware) GenerateToken(user *models.User) (string, error) {
+	// Generate salt
+	mac := hmac.New(sha256.New, []byte(m.Config.SaltKeyString))
+	mac.Write([]byte(user.Email))
+	salt := hex.EncodeToString(mac.Sum(nil))
+
 	claims := jwt.MapClaims{
 		"user_id":  user.ID.String(),
 		"email":    user.Email,
 		"is_admin": user.IsAdmin,
+		"salt":     salt,
 		"exp":      time.Now().Add(time.Hour * 72).Unix(),
 	}
 
