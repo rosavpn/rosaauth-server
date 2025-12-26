@@ -1,7 +1,6 @@
 package models
 
 import (
-	"encoding/json"
 	"time"
 
 	"github.com/google/uuid"
@@ -17,9 +16,9 @@ type User struct {
 }
 
 type TwoFARecord struct {
-	ID      uuid.UUID       `json:"id"`
-	UserID  uuid.UUID       `json:"user_id"`
-	Payload json.RawMessage `json:"payload"`
+	ID            uuid.UUID `json:"id"`
+	UserID        uuid.UUID `json:"user_id"`
+	EncryptedData string    `json:"encrypted_data"`
 }
 
 type SyncOp string
@@ -35,8 +34,8 @@ type SyncOperation struct {
 }
 
 type TwoFARecordPayload struct {
-	ID      uuid.UUID       `json:"id"`
-	Payload json.RawMessage `json:"payload"`
+	ID            uuid.UUID `json:"id"`
+	EncryptedData string    `json:"encrypted_data"`
 }
 
 // Admin API Models

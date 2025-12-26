@@ -3,7 +3,6 @@ package database
 import (
 	"context"
 	"database/sql"
-	"encoding/json"
 	"fmt"
 
 	"rosaauth-server/internal/models"
@@ -30,11 +29,9 @@ func (r *RecordRepo) GetRecords(ctx context.Context, userID uuid.UUID) ([]models
 	var records []models.TwoFARecordPayload
 	for rows.Next() {
 		var rec models.TwoFARecordPayload
-		var dataStr string
-		if err := rows.Scan(&rec.ID, &dataStr); err != nil {
+		if err := rows.Scan(&rec.ID, &rec.EncryptedData); err != nil {
 			return nil, err
 		}
-		rec.Payload = json.RawMessage(dataStr)
 		records = append(records, rec)
 	}
 	return records, nil
@@ -58,7 +55,7 @@ func (r *RecordRepo) ApplySyncOps(ctx context.Context, userID uuid.UUID, ops []m
 	for _, op := range ops {
 		switch op.Op {
 		case models.SyncOpUpsert:
-			dataStr := string(op.Data.Payload)
+			dataStr := op.Data.EncryptedData
 			if op.Data.ID == uuid.Nil {
 				continue
 			}

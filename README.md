@@ -120,7 +120,7 @@ Open your browser and navigate to `http://localhost:3000`. Log in using the `ADM
         "op": "upsert",
         "data": {
           "id": "uuid-v4",
-          "payload": { "encrypted": "code-blob" }
+          "encrypted_data": "base64_string_given_by_user"
         }
       },
       {
@@ -129,7 +129,7 @@ Open your browser and navigate to `http://localhost:3000`. Log in using the `ADM
       }
     ]
     ```
--   **Response:** List of current records on the server.
+-   **Response:** Array of current records: `[{"id": "...", "encrypted_data": "..."}]`
 
 ## License
 
