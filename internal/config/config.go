@@ -15,6 +15,7 @@ type Config struct {
 	AdminPassword   string
 	GlobalRateLimit int
 	LoginRateLimit  int
+	SaltKeyString   string
 }
 
 func LoadConfig() *Config {
@@ -27,6 +28,7 @@ func LoadConfig() *Config {
 		AdminPassword:   getEnvOrPanic("ADMIN_PASSWORD"),
 		GlobalRateLimit: getEnvAsInt("GLOBAL_RATE_LIMIT", 20),
 		LoginRateLimit:  getEnvAsInt("LOGIN_RATE_LIMIT", 5),
+		SaltKeyString:   getEnvOrPanic("SALT_KEY_STRING"),
 	}
 }
 
