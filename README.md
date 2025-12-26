@@ -50,7 +50,7 @@ To run the application and database together, it's best to run them in the same 
       -e JWT_SECRET="your-secure-secret-key" \
       -e ADMIN_EMAIL="admin@example.com" \
       -e ADMIN_PASSWORD="securepassword" \
-      -e SALT_MAGIC_STRING="some-random-string" \
+      -e SALT_KEY_STRING="some-random-string" \
       ghcr.io/brsyuksel/rosaauth-server:latest
     ```
 
@@ -87,7 +87,7 @@ To run the application and database together, it's best to run them in the same 
     export JWT_SECRET="your-secure-secret-key"
     export ADMIN_EMAIL="admin@example.com"
     export ADMIN_PASSWORD="securepassword"
-    export SALT_MAGIC_STRING="some-random-string"
+    export SALT_KEY_STRING="some-random-string"
     export LOG_LEVEL="info"
     ```
 
